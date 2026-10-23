@@ -308,9 +308,12 @@ of them."
                   (string-prefix-p (file-name-as-directory (expand-file-name directory)) file))))
       (cond
        ((or (under "user-instruments") (under "user-effects"))
+        ;; Found under the home directory, the folder is "~/...": ESeq's
+        ;; program, run with it, would look for a folder named "~".
         (let ((folder (locate-dominating-file file "dsp.lisp")))
           (when folder
-            (cons (if (under "user-instruments") 'instrument 'effect) (directory-file-name folder)))))
+            (cons (if (under "user-instruments") 'instrument 'effect)
+                  (directory-file-name (expand-file-name folder))))))
        ((lispm-eseq-module-name file)
         (let ((viewer (if (and (file-exists-p file) (lispm-eseq--kinds-in file))
                           file
