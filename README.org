@@ -1,0 +1,80 @@
+#+title: LispM ESeq
+
+#+HTML: <p align="center"><a href="https://github.com/LispMachineLab/lispm-eseq/actions/workflows/test.yml"><img src="https://github.com/LispMachineLab/lispm-eseq/actions/workflows/test.yml/badge.svg" alt="test" /></a></p>
+
+[[https://github.com/universalsequences/eseq][ESeq]] in Emacs.  ESeq is a live sequencer and audio engine for the Mac, an application of its
+own made after Emacs: its interface and its sequencers are written in a Lisp of its own,
+eseqlisp, which it loads again as their files change, and its instruments and effects in
+DGenLisp, which it compiles to native code while it runs.  This package is ESeq's side in Emacs:
+its window shows ESeq, running or not, and what you made for it, the instruments, effects,
+sequencers and packages; from it ESeq is opened, new ones are made, they are edited in Emacs,
+where ESeq picks up what is saved, and checked with ESeq's own check, which compiles them, plays
+a test note and draws their panel.  It is an application of [[https://github.com/LispMachineLab/lispm-desktop][LispM Desktop]], which its App Store
+installs, and works in any Emacs 30.1 or later on a Mac.  In code, the prefix is ~lispm-eseq-~.
+
+* What it needs
+
+- *ESeq.app*, from [[https://github.com/universalsequences/eseq/releases][ESeq's releases]]: a disk image, signed and notarized, for Apple silicon and
+  macOS 11 or later.  It goes into the Applications folder.  In LispM Desktop, the App Store
+  downloads the release its catalog names, checks its SHA-256 and puts ESeq.app there as it
+  installs this application; while ESeq is missing, the window says where it comes from.
+
+ESeq's own command-line program, =eseq=, comes inside it, at =ESeq.app/Contents/MacOS/eseq=;
+this package runs it, never anything else of ESeq's.
+
+* Using it
+
+=M-x lispm-eseq= opens its window: ESeq, then a heading for each kind of thing made for it.
+
+| =RET=   | on ESeq, open it; on a heading, make one; on a line, edit it                       |
+| =o=     | open ESeq, or bring it to the front                                               |
+| =e=     | edit the line's instrument or effect, its =dsp.lisp=, or its sequencer's module   |
+| =u=     | edit the panel, =ui.lisp=, of the line's instrument or effect                     |
+| =c=     | check the line's instrument, effect or sequencer with ESeq's own check           |
+| =C=     | check it without drawing its panel                                                |
+| =v=     | view the panel the last check drew                                                |
+| =l=     | show what the checks said                                                         |
+| =+=     | make an instrument or effect from one of ESeq's own, or a sequencer              |
+| =i=     | install a package from its git repository, as =author/name=                      |
+| =I=     | import a package from a folder or an archive                                      |
+| =d= =w= | show the line's folder; copy its path                                             |
+| =G=     | open ESeq's guide to making instruments, effects and sequencers                  |
+| =g=     | read it all again                                                                 |
+| =n= =p= | the next and the previous line                                                    |
+
+A new instrument or effect is a copy of the Lisp of one of ESeq's own, in a folder of its name.
+A new sequencer is a pair of Local modules, =NAME.core= with its tick and =NAME.view= with its
+panel and its kind, sixteen steps played on one track, which passes ESeq's check as made.
+
+* Editing ESeq's Lisp
+
+ESeq's files of Lisp, under =~/.eseq.d/=, ESeq's folder in =~/Library/Application Support/= and
+inside ESeq.app, open in ~lispm-eseq-lisp-mode~: Lisp's editing, with ESeq's definitions shown.
+
+| =C-c C-c= | save, and check what the file belongs to; with =C-u=, without drawing its panel |
+| =C-c C-v= | view the panel the last check drew                                             |
+| =C-c C-o= | open ESeq                                                                       |
+| =C-c C-d= | open ESeq's guide                                                              |
+
+ESeq loads a Local module again once its file is saved, and an instrument's =ui.lisp=.  A
+=dsp.lisp= already on a track is loaded again from ESeq's Edit menu, /Reload Instrument From
+Disk/, or /Reload Selected Effect From Disk/ for an effect.
+
+* Agents
+
+LispM Store's skill /Make things for ESeq/ is this application's manual for LispM's agents,
+with tools saying where ESeq stands and what was made for it, making new ones from ESeq's own,
+and checking them with ESeq's check until they pass: the App Store installs it with ESeq.  The
+agents follow ESeq's own guide, =AGENTS.md=, which ESeq writes into its folder.
+
+* Tests
+
+=make test compile= runs the tests and byte-compiles the files, warnings as errors.  The tests run
+[[file:test/fake-eseq][test/fake-eseq]] inside a fake ESeq.app, answering as ESeq's program does from a directory of
+their own: ESeq is neither opened nor run.
+
+* License
+
+Copyright (C) 2026 Ryan.K.  Free software under the GNU Affero General Public License, version 3
+or later (see [[file:LICENSE][LICENSE]]).  ESeq itself is Alec Resende's, under the GNU GPL, version 3; this
+application runs its program, as a terminal would.

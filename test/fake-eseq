@@ -1,0 +1,55 @@
+#!/bin/sh
+# A stand-in for ESeq's eseq, for the tests: it keeps what users make under
+# $LISPM_ESEQ_TEST_ROOT, and the files of its own under
+# $LISPM_ESEQ_TEST_FACTORY.  A dsp.lisp or a module saying BROKEN fails
+# its check.
+root="$LISPM_ESEQ_TEST_ROOT"
+factory="$LISPM_ESEQ_TEST_FACTORY"
+echo "$*" >> "$root/calls"
+case "$1 $2" in
+  "paths "*)
+    printf '%-20s%s\n' user-root "$root/support" user-instruments "$root/support/instruments" \
+      user-effects "$root/support/effects" factory-instruments "$factory/instruments" \
+      factory-effects "$factory/effects" packages "$root/eseq.d/packages" \
+      local-packages "$root/eseq.d/packages/local" authoring "$factory/authoring" ;;
+  "authoring seed")
+    mkdir -p "$root/support"
+    echo "# Authoring eseq instruments, effects and sequencers" > "$root/support/AGENTS.md"
+    echo "wrote $root/support/AGENTS.md" ;;
+  "instrument check"|"effect check")
+    if grep -q BROKEN "$3/dsp.lisp" 2>/dev/null; then
+      echo "compile error:" >&2
+      echo "eseq: FAIL $3 (dsp compile)" >&2
+      echo "compile error:" >&2
+      echo "Error: Parse error: Missing closing parenthesis" >&2
+      exit 1
+    fi
+    echo "ok    compile   2 param(s), 4 input(s), 2 output(s)"
+    echo "ok    ui.lisp   structure and param names"
+    [ "$4" = --no-render ] || echo "ok    panel     $root/panel.png"
+    echo "PASS $3" ;;
+  "sequencer check")
+    file="$root/eseq.d/packages/local/$(echo "$3" | tr . /).lisp"
+    if [ ! -f "$file" ] || grep -q BROKEN "$file"; then
+      echo "eseq: FAIL $3 (module)" >&2
+      echo "no file for \`$3\`" >&2
+      exit 1
+    fi
+    echo "ok    module    $file"
+    echo "ok    def-kind  $(echo "$3" | cut -d. -f1)"
+    [ "$4" = --no-render ] || echo "ok    panel     $(echo "$3" | cut -d. -f1): $root/panel.png"
+    echo "--    tick      not run by the check: press Play in eseq and listen"
+    echo "PASS $3" ;;
+  "package install")
+    folder="$root/eseq.d/packages/$(echo "$3" | tr / .)"
+    case "$4" in
+      *missing*) echo "eseq: git clone failed: repository not found" >&2; exit 1 ;;
+    esac
+    mkdir -p "$folder/src"
+    printf '{"name": "%s", "version": "0.2.0", "kinds": [{"name": "rings", "module": "x"}]}\n' "$3" \
+      > "$folder/manifest.json"
+    echo "installed $3 at $folder" ;;
+  *)
+    echo "eseq: usage: eseq paths" >&2
+    exit 1 ;;
+esac
